@@ -32,16 +32,18 @@ import scala.language.reflectiveCalls
 trait BatchUpdater {
 
   def auditConnector: Auditing
+  def appName: String
+  def idName: String
 
   def update[ID](ids: List[ID], action: UpdateAction[ID])(implicit hc: HeaderCarrier, stringify: Stringify[ID]): Future[BatchUpdateResult[ID]] = {
     def auditEvent(id: ID, failureReason: Option[String]) = DataEvent(
-      auditSource = "message",
+      auditSource = appName,
       auditType = failureReason match {
         case Some(_) => TxFailed
         case None => TxSucceeded
       },
       tags = Map(TransactionName -> action.transactionName),
-      detail = Map("messageId" -> stringify(id)) ++ failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map()) ++ action.auditDetails
+      detail = Map(idName -> stringify(id)) ++ failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map()) ++ action.auditDetails
     )
 
     def sendAuditEvent(id: ID, result: SingleResult) = auditConnector.sendEvent(auditEvent(id, failureReason = result.failureReason))

@@ -20,7 +20,7 @@ object SingleResult {
   case object Succeeded       extends SingleResult { val failureReason = None }
   case object AlreadyUpdated  extends SingleResult { val failureReason = Some("alreadyUpdated") }
   case object InvalidState    extends SingleResult { val failureReason = Some("invalidState") }
-  case object MessageNotFound extends SingleResult { val failureReason = Some("messageNotFound") }
+  case object NotFound        extends SingleResult { val failureReason = Some("notFound") }
   case object UpdateFailed    extends SingleResult { val failureReason = Some("updateFailed") }
   case object AuditFailed     extends SingleResult { val failureReason = Some("auditFailed")}
 }

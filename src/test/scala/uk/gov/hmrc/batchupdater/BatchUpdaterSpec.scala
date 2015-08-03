@@ -44,7 +44,7 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       succeeded = 0,
       alreadyUpdated = 0,
       invalidState = 0,
-      messageNotFound = List.empty,
+      notFound = List.empty,
       updateFailed = List.empty,
       auditFailed = List.empty
     )
@@ -71,7 +71,7 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       AlreadyUpdated -> normalResult.copy(succeeded = 2, alreadyUpdated = 1),
       InvalidState -> normalResult.copy(succeeded = 2, invalidState = 1),
       UpdateFailed -> normalResult.copy(succeeded = 2, updateFailed = List(id2)),
-      MessageNotFound -> normalResult.copy(succeeded = 2, messageNotFound = List(id2)))) {
+      NotFound -> normalResult.copy(succeeded = 2, notFound = List(id2)))) {
       s"Handle failing IDs with $status" in new TestCase {
         `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded))
         `action.apply(...)`.when(id2, *).returns(Future.successful(status))
@@ -94,7 +94,7 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       update(allIds, action).futureValue should be (normalResult.copy(succeeded = 2, updateFailed = List(id2)))
 
       for (id <- allIds) `action.apply(...)`.verify(id, *)
-      for (message <- List(id1, id3)) `auditConnector.sendEvent(...)`.verify(where(eventMatches(message, EventTypes.Succeeded, failureReason = None)))
+      for (item <- List(id1, id3)) `auditConnector.sendEvent(...)`.verify(where(eventMatches(item, EventTypes.Succeeded, failureReason = None)))
       `auditConnector.sendEvent(...)`.verify(where(eventMatches(id2, EventTypes.Failed, failureReason = Some("updateFailed"))))
     }
 
@@ -107,11 +107,11 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       update(allIds, action).futureValue should be (normalResult.copy(succeeded = 2, updateFailed = List(id2)))
 
       for (id <- allIds) `action.apply(...)`.verify(id, *)
-      for (message <- List(id1, id3)) `auditConnector.sendEvent(...)`.verify(where(eventMatches(message, EventTypes.Succeeded, failureReason = None)))
+      for (item <- List(id1, id3)) `auditConnector.sendEvent(...)`.verify(where(eventMatches(item, EventTypes.Succeeded, failureReason = None)))
       `auditConnector.sendEvent(...)`.verify(where(eventMatches(id2, EventTypes.Failed, failureReason = Some("updateFailed"))))
     }
 
-    "Return a message ID that succeeded but the audit failed" in new TestCase {
+    "Return a ID that succeeded but the audit failed" in new TestCase {
       `action.apply(...)`.when(*, *).returns(Future.successful(Succeeded))
       `auditConnector.sendEvent(...)`.when(where(eventMatches(id1, EventTypes.Succeeded, failureReason = None))).returns(Future.successful(Success))
       `auditConnector.sendEvent(...)`.when(where(eventMatches(id2, EventTypes.Succeeded, failureReason = None))).returns(Future.successful(Disabled))
@@ -119,7 +119,7 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       update(allIds, action).futureValue should be(normalResult.copy(succeeded = 3, auditFailed = List(id3)))
     }
 
-    "Return a message ID where the update didn't occur and the audit failed" in new TestCase {
+    "Return a ID where the update didn't occur and the audit failed" in new TestCase {
       `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded))
       `action.apply(...)`.when(id2, *).returns(Future.successful(UpdateFailed))
       `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded))
@@ -140,14 +140,17 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       val `auditConnector.sendEvent(...)` = toStubFunction3(auditConnector.sendEvent(_: AuditEvent)(_: HeaderCarrier, _: ExecutionContext))
 
       val transactionName = "some trans name"
+      val appName = "someAppName"
+      val idName = "someIdName"
+
       val auditDetails = Map("some" -> "Details")
 
       def eventMatches(id: ExampleID, eventType: String, failureReason: Option[String])(event: AuditEvent, hc: HeaderCarrier, ec: ExecutionContext): Boolean = event match {
         case DataEvent(auditSource, auditType, _, tags, detail, _) =>
-          auditSource == "message" &&
+          auditSource == appName &&
             auditType == eventType &&
             tags == Map(EventKeys.TransactionName -> transactionName) &&
-            detail == Map("messageId" -> id.stringify) ++ auditDetails ++ failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map())
+            detail == Map(idName -> id.stringify) ++ auditDetails ++ failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map())
         case _ => false
       }
 

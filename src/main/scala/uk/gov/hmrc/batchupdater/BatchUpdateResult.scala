@@ -20,7 +20,7 @@ case class BatchUpdateResult[ID](tried: Int,
                            succeeded: Int,
                            alreadyUpdated: Int,
                            invalidState: Int,
-                           messageNotFound: List[ID],
+                           notFound: List[ID],
                            updateFailed: List[ID],
                            auditFailed: List[ID]) {
 
@@ -28,7 +28,7 @@ case class BatchUpdateResult[ID](tried: Int,
     case SingleResult.Succeeded       => copy(tried = tried + 1, succeeded = succeeded + 1)
     case SingleResult.AlreadyUpdated  => copy(tried = tried + 1, alreadyUpdated = alreadyUpdated + 1)
     case SingleResult.InvalidState    => copy(tried = tried + 1, invalidState = invalidState + 1)
-    case SingleResult.MessageNotFound => copy(tried = tried + 1, messageNotFound = messageNotFound :+ id)
+    case SingleResult.NotFound => copy(tried = tried + 1, notFound = notFound :+ id)
     case SingleResult.UpdateFailed    => copy(tried = tried + 1, updateFailed = updateFailed :+ id)
     case SingleResult.AuditFailed     => copy(auditFailed = auditFailed :+ id)
   }
@@ -40,7 +40,7 @@ object BatchUpdateResult {
     succeeded = 0,
     alreadyUpdated = 0,
     invalidState = 0,
-    messageNotFound = List.empty,
+    notFound = List.empty,
     updateFailed = List.empty,
     auditFailed = List.empty
   )
