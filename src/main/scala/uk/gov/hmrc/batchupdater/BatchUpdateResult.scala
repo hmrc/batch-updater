@@ -16,13 +16,16 @@
 
 package uk.gov.hmrc.batchupdater
 
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
 case class BatchUpdateResult[ID](tried: Int,
-                           succeeded: Int,
-                           alreadyUpdated: Int,
-                           invalidState: Int,
-                           notFound: List[ID],
-                           updateFailed: List[ID],
-                           auditFailed: List[ID]) {
+                                 succeeded: Int,
+                                 alreadyUpdated: Int,
+                                 invalidState: Int,
+                                 notFound: List[ID],
+                                 updateFailed: List[ID],
+                                 auditFailed: List[ID]) {
 
   def add(result: SingleResult, id: ID): BatchUpdateResult[ID] = result match {
     case SingleResult.Succeeded       => copy(tried = tried + 1, succeeded = succeeded + 1)
@@ -44,4 +47,16 @@ object BatchUpdateResult {
     updateFailed = List.empty,
     auditFailed = List.empty
   )
+
+  import scala.language.implicitConversions
+
+  implicit def batchUpdateResultWrites[ID](implicit idFormat: Writes[ID]): Writes[BatchUpdateResult[ID]] = (
+    (__ \ "tried").write[Int] and
+    (__ \ "succeeded").write[Int] and
+    (__ \ "alreadyUpdated").write[Int] and
+    (__ \ "invalidState").write[Int] and
+    (__ \ "notFound").write[List[ID]] and
+    (__ \ "updateFailed").write[List[ID]] and
+    (__ \ "auditFailed").write[List[ID]]
+  )(unlift(BatchUpdateResult.unapply[ID] _))
 }
