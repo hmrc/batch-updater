@@ -49,6 +49,7 @@ private object BuildDependencies {
 object Developers {
 
   def apply() = developers := List(
-    Developer("howyp", "Howard Perrin", "howard.perrin@digital.hmrc.gov.uk", new URL("http://www.zuhlke.co.uk/"))
+    Developer("howyp", "Howard Perrin", "howard.perrin@digital.hmrc.gov.uk", new URL("http://www.zuhlke.co.uk/")),
+    Developer("itsonlysoftware", "David Collins", "david.collins@digital.hmrc.gov.uk", new URL("http://www.equalexperts.com/"))
   )
 }
