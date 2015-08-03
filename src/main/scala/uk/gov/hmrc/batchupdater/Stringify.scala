@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.hello
+package uk.gov.hmrc.batchupdater
 
-import org.scalatest.Matchers._
-import org.scalatest.WordSpecLike
-
-
-class HelloWorldSpecs extends WordSpecLike {
-
-  "HelloWorld" should {
-
-    "say hello" in {
-      HelloWorld.sayHello shouldBe "hello"
-    }
+object Stringify {
+  implicit def stringifyViaToString[T]: Stringify[T] = new Stringify[T] {
+    def apply(value: T) = value.toString
   }
+}
+
+trait Stringify[T] {
+  def apply(value: T): String
 }

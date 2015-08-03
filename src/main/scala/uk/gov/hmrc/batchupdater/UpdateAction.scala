@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.hello
+package uk.gov.hmrc.batchupdater
 
-object HelloWorld {
+import uk.gov.hmrc.play.audit.http.HeaderCarrier
 
-  def main(args: Array[String]) {
-    println(sayHello)
-  }
+import scala.concurrent.Future
 
-  def sayHello:String = "hello"
+trait UpdateAction[ID] {
+  def transactionName: String
+  def auditDetails: Map[String, String]
+  def apply(id: ID)(implicit hc: HeaderCarrier): Future[SingleResult]
 }
