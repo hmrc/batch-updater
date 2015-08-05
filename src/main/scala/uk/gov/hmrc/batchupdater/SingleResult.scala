@@ -16,13 +16,24 @@
 
 package uk.gov.hmrc.batchupdater
 
-object SingleResult {
-  case object Succeeded       extends SingleResult { val failureReason = None }
-  case object AlreadyUpdated  extends SingleResult { val failureReason = Some("alreadyUpdated") }
-  case object InvalidState    extends SingleResult { val failureReason = Some("invalidState") }
-  case object NotFound        extends SingleResult { val failureReason = Some("notFound") }
-  case object UpdateFailed    extends SingleResult { val failureReason = Some("updateFailed") }
-  case object AuditFailed     extends SingleResult { val failureReason = Some("auditFailed")}
+sealed trait SingleResult {
+  val failureReason: Option[String]
+  val auditDetails: Map[String,String]
 }
+object SingleResult {
+  case class Succeeded(auditDetails: Map[String, String])       extends SingleResult { val failureReason = None }
+  case class AlreadyUpdated(auditDetails: Map[String, String])  extends SingleResult { val failureReason = Some("alreadyUpdated") }
+  case class InvalidState(auditDetails: Map[String, String])    extends SingleResult { val failureReason = Some("invalidState") }
+  case class NotFound(auditDetails: Map[String, String])        extends SingleResult { val failureReason = Some("notFound") }
+  case class UpdateFailed(auditDetails: Map[String, String])    extends SingleResult { val failureReason = Some("updateFailed") }
+  case object AuditFailed                                       extends SingleResult {
+    val failureReason = Some("auditFailed")
+    val auditDetails = Map.empty[String, String]
+  }
 
-sealed trait SingleResult { val failureReason: Option[String] }
+  object Succeeded      { def apply(): Succeeded      = Succeeded(Map.empty) }
+  object AlreadyUpdated { def apply(): AlreadyUpdated = AlreadyUpdated(Map.empty) }
+  object InvalidState   { def apply(): InvalidState   = InvalidState(Map.empty) }
+  object NotFound       { def apply(): NotFound       = NotFound(Map.empty) }
+  object UpdateFailed   { def apply(): UpdateFailed   = UpdateFailed(Map.empty) }
+}

@@ -18,6 +18,7 @@ package uk.gov.hmrc.batchupdater
 
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import SingleResult._
 
 case class BatchUpdateResult[ID](tried: Int,
                                  succeeded: Int,
@@ -28,12 +29,12 @@ case class BatchUpdateResult[ID](tried: Int,
                                  auditFailed: List[ID]) {
 
   def add(result: SingleResult, id: ID): BatchUpdateResult[ID] = result match {
-    case SingleResult.Succeeded       => copy(tried = tried + 1, succeeded = succeeded + 1)
-    case SingleResult.AlreadyUpdated  => copy(tried = tried + 1, alreadyUpdated = alreadyUpdated + 1)
-    case SingleResult.InvalidState    => copy(tried = tried + 1, invalidState = invalidState + 1)
-    case SingleResult.NotFound => copy(tried = tried + 1, notFound = notFound :+ id)
-    case SingleResult.UpdateFailed    => copy(tried = tried + 1, updateFailed = updateFailed :+ id)
-    case SingleResult.AuditFailed     => copy(auditFailed = auditFailed :+ id)
+    case _: Succeeded       => copy(tried = tried + 1, succeeded = succeeded + 1)
+    case _: AlreadyUpdated  => copy(tried = tried + 1, alreadyUpdated = alreadyUpdated + 1)
+    case _: InvalidState    => copy(tried = tried + 1, invalidState = invalidState + 1)
+    case _: NotFound        => copy(tried = tried + 1, notFound = notFound :+ id)
+    case _: UpdateFailed    => copy(tried = tried + 1, updateFailed = updateFailed :+ id)
+    case AuditFailed        => copy(auditFailed = auditFailed :+ id)
   }
 }
 

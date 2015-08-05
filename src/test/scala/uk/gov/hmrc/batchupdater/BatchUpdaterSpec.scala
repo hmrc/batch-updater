@@ -48,7 +48,7 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       updateFailed = List.empty,
       auditFailed = List.empty
     )
-
+    val auditDetails = Map("some" -> "Details")
 
     "Return empty results if given no IDs" in new TestCase {
       update(List.empty, action).futureValue should be (BatchUpdateResult.empty)
@@ -56,7 +56,7 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
     }
 
     "Handle and audit successful IDs" in new TestCase {
-      `action.apply(...)`.when(*, *).returns(Future.successful(Succeeded))
+      `action.apply(...)`.when(*, *).returns(Future.successful(Succeeded(auditDetails)))
       `auditConnector.sendEvent(...)`.when(*, *, *).returns(Future.successful(Success))
 
       update(allIds, action).futureValue should be (normalResult.copy(succeeded = 3))
@@ -68,14 +68,14 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
     }
 
     for ((status, expectedResult) <- Map(
-      AlreadyUpdated -> normalResult.copy(succeeded = 2, alreadyUpdated = 1),
-      InvalidState -> normalResult.copy(succeeded = 2, invalidState = 1),
-      UpdateFailed -> normalResult.copy(succeeded = 2, updateFailed = List(id2)),
-      NotFound -> normalResult.copy(succeeded = 2, notFound = List(id2)))) {
+      AlreadyUpdated(auditDetails) -> normalResult.copy(succeeded = 2, alreadyUpdated = 1),
+      InvalidState(auditDetails) -> normalResult.copy(succeeded = 2, invalidState = 1),
+      UpdateFailed(auditDetails) -> normalResult.copy(succeeded = 2, updateFailed = List(id2)),
+      NotFound(auditDetails) -> normalResult.copy(succeeded = 2, notFound = List(id2)))) {
       s"Handle failing IDs with $status" in new TestCase {
-        `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded))
+        `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded(auditDetails)))
         `action.apply(...)`.when(id2, *).returns(Future.successful(status))
-        `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded))
+        `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded(auditDetails)))
         `auditConnector.sendEvent(...)`.when(*, *, *).returns(Future.successful(Success))
 
         update(allIds, action).futureValue should be(expectedResult)
@@ -86,33 +86,33 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
     }
 
     "Handle and audit IDs where the action returns an exception" in new TestCase {
-      `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded))
+      `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded(auditDetails)))
       `action.apply(...)`.when(id2, *).throws(new RuntimeException("blah1"))
-      `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded))
+      `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded(auditDetails)))
       `auditConnector.sendEvent(...)`.when(*, *, *).returns(Future.successful(Success))
 
       update(allIds, action).futureValue should be (normalResult.copy(succeeded = 2, updateFailed = List(id2)))
 
       for (id <- allIds) `action.apply(...)`.verify(id, *)
       for (item <- List(id1, id3)) `auditConnector.sendEvent(...)`.verify(where(eventMatches(item, EventTypes.Succeeded, failureReason = None)))
-      `auditConnector.sendEvent(...)`.verify(where(eventMatches(id2, EventTypes.Failed, failureReason = Some("updateFailed"))))
+      `auditConnector.sendEvent(...)`.verify(where(eventMatches(id2, EventTypes.Failed, failureReason = Some("updateFailed"), extraAuditDetails = Map.empty)))
     }
 
     "Handle and audit IDs where the action returns a failed future" in new TestCase {
-      `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded))
+      `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded(auditDetails)))
       `action.apply(...)`.when(id2, *).returns(Future.failed(new RuntimeException("blah1")))
-      `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded))
+      `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded(auditDetails)))
       `auditConnector.sendEvent(...)`.when(*, *, *).returns(Future.successful(Success))
 
       update(allIds, action).futureValue should be (normalResult.copy(succeeded = 2, updateFailed = List(id2)))
 
       for (id <- allIds) `action.apply(...)`.verify(id, *)
       for (item <- List(id1, id3)) `auditConnector.sendEvent(...)`.verify(where(eventMatches(item, EventTypes.Succeeded, failureReason = None)))
-      `auditConnector.sendEvent(...)`.verify(where(eventMatches(id2, EventTypes.Failed, failureReason = Some("updateFailed"))))
+      `auditConnector.sendEvent(...)`.verify(where(eventMatches(id2, EventTypes.Failed, failureReason = Some("updateFailed"), extraAuditDetails = Map.empty)))
     }
 
     "Return a ID that succeeded but the audit failed" in new TestCase {
-      `action.apply(...)`.when(*, *).returns(Future.successful(Succeeded))
+      `action.apply(...)`.when(*, *).returns(Future.successful(Succeeded(auditDetails)))
       `auditConnector.sendEvent(...)`.when(where(eventMatches(id1, EventTypes.Succeeded, failureReason = None))).returns(Future.successful(Success))
       `auditConnector.sendEvent(...)`.when(where(eventMatches(id2, EventTypes.Succeeded, failureReason = None))).returns(Future.successful(Disabled))
       `auditConnector.sendEvent(...)`.when(where(eventMatches(id3, EventTypes.Succeeded, failureReason = None))).returns(Future.failed(Failure("melons")))
@@ -120,9 +120,9 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
     }
 
     "Return a ID where the update didn't occur and the audit failed" in new TestCase {
-      `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded))
-      `action.apply(...)`.when(id2, *).returns(Future.successful(UpdateFailed))
-      `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded))
+      `action.apply(...)`.when(id1, *).returns(Future.successful(Succeeded(auditDetails)))
+      `action.apply(...)`.when(id2, *).returns(Future.successful(UpdateFailed(auditDetails)))
+      `action.apply(...)`.when(id3, *).returns(Future.successful(Succeeded(auditDetails)))
       `auditConnector.sendEvent(...)`.when(where(eventMatches(id1, EventTypes.Succeeded, failureReason = None))).returns(Future.successful(Success))
       `auditConnector.sendEvent(...)`.when(where(eventMatches(id2, EventTypes.Failed, failureReason = Some("updateFailed")))).returns(Future.failed(Failure("melons")))
       `auditConnector.sendEvent(...)`.when(where(eventMatches(id3, EventTypes.Succeeded, failureReason = None))).returns(Future.successful(Success))
@@ -143,21 +143,17 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       val appName = "someAppName"
       val idName = "someIdName"
 
-      val auditDetails = Map("some" -> "Details")
-
-      def eventMatches(id: ExampleID, eventType: String, failureReason: Option[String])(event: AuditEvent, hc: HeaderCarrier, ec: ExecutionContext): Boolean = event match {
+      def eventMatches(id: ExampleID, eventType: String, failureReason: Option[String], extraAuditDetails: Map[String, String] = auditDetails)(event: AuditEvent, hc: HeaderCarrier, ec: ExecutionContext): Boolean = event match {
         case DataEvent(auditSource, auditType, _, tags, detail, _) =>
           auditSource == appName &&
             auditType == eventType &&
             tags == Map(EventKeys.TransactionName -> transactionName) &&
-            detail == Map(idName -> id.stringify) ++ auditDetails ++ failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map())
+            detail == Map(idName -> id.stringify) ++ extraAuditDetails ++ failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map())
         case _ => false
       }
 
-
       val action = stub[UpdateAction[ExampleID]]
       (action.transactionName _).when().returns(transactionName)
-      (action.auditDetails _).when().returns(auditDetails)
 
       val `action.apply(...)` = toStubFunction2(action.apply(_: ExampleID)(_: HeaderCarrier))
     }

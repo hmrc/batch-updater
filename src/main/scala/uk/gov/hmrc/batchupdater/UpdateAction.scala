@@ -22,6 +22,5 @@ import scala.concurrent.Future
 
 trait UpdateAction[ID] {
   def transactionName: String
-  def auditDetails: Map[String, String]
   def apply(id: ID)(implicit hc: HeaderCarrier): Future[SingleResult]
 }

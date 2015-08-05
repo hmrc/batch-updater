@@ -36,29 +36,29 @@ trait BatchUpdater {
   def idName: String
 
   def update[ID](ids: List[ID], action: UpdateAction[ID])(implicit hc: HeaderCarrier, stringify: Stringify[ID]): Future[BatchUpdateResult[ID]] = {
-    def auditEvent(id: ID, failureReason: Option[String]) = DataEvent(
+    def auditEvent(id: ID, result: SingleResult) = DataEvent(
       auditSource = appName,
-      auditType = failureReason match {
+      auditType = result.failureReason match {
         case Some(_) => TxFailed
         case None => TxSucceeded
       },
       tags = Map(TransactionName -> action.transactionName),
-      detail = Map(idName -> stringify(id)) ++ failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map()) ++ action.auditDetails
+      detail = Map(idName -> stringify(id)) ++ result.failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map()) ++ result.auditDetails
     )
 
-    def sendAuditEvent(id: ID, result: SingleResult) = auditConnector.sendEvent(auditEvent(id, failureReason = result.failureReason))
+    def sendAuditEvent(id: ID, result: SingleResult) = auditConnector.sendEvent(auditEvent(id, result))
 
     Enumerator.enumerate(ids) run Iteratee.foldM(BatchUpdateResult.empty[ID]) { (results, id) =>
       val resultF: Future[SingleResult] =
         try {
           action(id).recover { case e: Exception =>
             Logger.warn(s"Failed ${action.transactionName} for ${stringify(id)}", e)
-            SingleResult.UpdateFailed
+            SingleResult.UpdateFailed()
           }
         } catch {
           case e: Exception =>
             Logger.warn(s"Failed ${action.transactionName} for ${stringify(id)}", e)
-            Future.successful(SingleResult.UpdateFailed)
+            Future.successful(SingleResult.UpdateFailed())
         }
       resultF.flatMap { r =>
         val batchResultsAfterAuditF =
