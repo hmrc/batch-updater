@@ -30,7 +30,7 @@ object HmrcBuild extends Build {
 private object BuildDependencies {
 
   object Compile {
-    val httpVerbs = "uk.gov.hmrc" %% "http-verbs" % "1.4.0"
+    val httpVerbs = "uk.gov.hmrc" %% "http-verbs" % "2.2.0"
     val playIteratees = "com.typesafe.play" %% "play-iteratees" % "2.3.8"
     val play = "com.typesafe.play" %% "play" % "2.3.8"
   }
