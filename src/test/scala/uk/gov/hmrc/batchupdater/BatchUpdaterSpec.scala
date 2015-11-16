@@ -18,6 +18,7 @@ package uk.gov.hmrc.batchupdater
 
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Second, Millis, Span}
 import org.scalatest.{Matchers, WordSpec}
 import uk.gov.hmrc.batchupdater.SingleResult._
 import uk.gov.hmrc.play.audit.EventKeys
@@ -31,6 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with ScalaFutures {
+
+  override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(1, Second)))
+
   "The audited batch update service" should {
 
     implicit val ec = ExecutionContext.Implicits.global
@@ -158,4 +162,5 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       val `action.apply(...)` = toStubFunction2(action.apply(_: ExampleID)(_: ExecutionContext))
     }
   }
+
 }
