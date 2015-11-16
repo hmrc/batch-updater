@@ -16,11 +16,9 @@
 
 package uk.gov.hmrc.batchupdater
 
-import uk.gov.hmrc.play.audit.http.HeaderCarrier
-
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait UpdateAction[ID] {
   def transactionName: String
-  def apply(id: ID)(implicit hc: HeaderCarrier): Future[SingleResult]
+  def apply(id: ID)(implicit ec: ExecutionContext): Future[SingleResult]
 }

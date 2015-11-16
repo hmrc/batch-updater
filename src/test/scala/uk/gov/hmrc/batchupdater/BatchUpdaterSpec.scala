@@ -19,21 +19,21 @@ package uk.gov.hmrc.batchupdater
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Matchers, WordSpec}
+import uk.gov.hmrc.batchupdater.SingleResult._
 import uk.gov.hmrc.play.audit.EventKeys
-import uk.gov.hmrc.play.audit.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditResult._
 import uk.gov.hmrc.play.audit.model.{AuditEvent, DataEvent, EventTypes}
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.time.DateTimeUtils
 
 import scala.concurrent.{ExecutionContext, Future}
-import SingleResult._
 
 
 class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with ScalaFutures {
   "The audited batch update service" should {
 
-    implicit val hc = HeaderCarrier()
+    implicit val ec = ExecutionContext.Implicits.global
 
     val id1 = ExampleID("1")
     val id2 = ExampleID("2")
@@ -155,7 +155,7 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       val action = stub[UpdateAction[ExampleID]]
       (action.transactionName _).when().returns(transactionName)
 
-      val `action.apply(...)` = toStubFunction2(action.apply(_: ExampleID)(_: HeaderCarrier))
+      val `action.apply(...)` = toStubFunction2(action.apply(_: ExampleID)(_: ExecutionContext))
     }
   }
 }

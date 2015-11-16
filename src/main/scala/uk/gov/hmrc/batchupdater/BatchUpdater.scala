@@ -18,15 +18,12 @@ package uk.gov.hmrc.batchupdater
 
 import play.api.Logger
 import play.api.libs.iteratee.{Enumerator, Iteratee}
-import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.play.audit.EventKeys._
-import uk.gov.hmrc.play.audit.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector => Auditing}
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.audit.model.EventTypes.{Failed => TxFailed, Succeeded => TxSucceeded}
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.reflectiveCalls
 
 trait BatchUpdater {
@@ -35,7 +32,7 @@ trait BatchUpdater {
   def appName: String
   def idName: String
 
-  def update[ID](ids: List[ID], action: UpdateAction[ID])(implicit hc: HeaderCarrier, stringify: Stringify[ID]): Future[BatchUpdateResult[ID]] = {
+  def update[ID](ids: List[ID], action: UpdateAction[ID])(implicit ec: ExecutionContext, stringify: Stringify[ID]): Future[BatchUpdateResult[ID]] = {
     def auditEvent(id: ID, result: SingleResult) = DataEvent(
       auditSource = appName,
       auditType = result.failureReason match {

@@ -18,7 +18,7 @@ object HmrcBuild extends Build {
     .settings(
       name := appName,
       libraryDependencies ++= Seq(
-        Compile.httpVerbs,
+        Compile.playAuditing,
         Test.scalaTest,
         Test.pegdown,
         Test.scalaMock
@@ -30,7 +30,7 @@ object HmrcBuild extends Build {
 private object BuildDependencies {
 
   object Compile {
-    val httpVerbs = "uk.gov.hmrc" %% "http-verbs" % "2.2.0"
+    val playAuditing = "uk.gov.hmrc" %% "play-auditing" % "0.2.0"
     val playIteratees = "com.typesafe.play" %% "play-iteratees" % "2.3.8"
     val play = "com.typesafe.play" %% "play" % "2.3.8"
   }
