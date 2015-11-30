@@ -30,9 +30,7 @@ object HmrcBuild extends Build {
 private object BuildDependencies {
 
   object Compile {
-    val playAuditing = "uk.gov.hmrc" %% "play-auditing" % "0.2.0"
-    val playIteratees = "com.typesafe.play" %% "play-iteratees" % "2.3.8"
-    val play = "com.typesafe.play" %% "play" % "2.3.8"
+    val playAuditing = "uk.gov.hmrc" %% "play-auditing" % "1.1.0"
   }
 
   sealed abstract class Test(scope: String) {
