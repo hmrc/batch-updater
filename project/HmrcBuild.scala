@@ -30,7 +30,7 @@ object HmrcBuild extends Build {
 private object BuildDependencies {
 
   object Compile {
-    val playAuditing = "uk.gov.hmrc" %% "play-auditing" % "1.5.1"
+    val playAuditing = "uk.gov.hmrc" %% "play-auditing" % "1.9.0"
   }
 
   sealed abstract class Test(scope: String) {
