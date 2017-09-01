@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import uk.gov.hmrc.batchupdater.SingleResult._
 import uk.gov.hmrc.play.audit.EventKeys
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditResult._
-import uk.gov.hmrc.play.audit.model.{AuditEvent, DataEvent, EventTypes}
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.model.{DataEvent, EventTypes}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.time.DateTimeUtils
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -141,13 +141,13 @@ class BatchUpdaterSpec extends WordSpec with Matchers with MockFactory with Scal
       val now = DateTimeUtils.now
 
       override val auditConnector = stub[AuditConnector]
-      val `auditConnector.sendEvent(...)` = toStubFunction3(auditConnector.sendEvent(_: AuditEvent)(_: HeaderCarrier, _: ExecutionContext))
+      val `auditConnector.sendEvent(...)` = toStubFunction3(auditConnector.sendEvent(_: DataEvent)(_: HeaderCarrier, _: ExecutionContext))
 
       val transactionName = "some trans name"
       val appName = "someAppName"
       val idName = "someIdName"
 
-      def eventMatches(id: ExampleID, eventType: String, failureReason: Option[String], extraAuditDetails: Map[String, String] = auditDetails)(event: AuditEvent, hc: HeaderCarrier, ec: ExecutionContext): Boolean = event match {
+      def eventMatches(id: ExampleID, eventType: String, failureReason: Option[String], extraAuditDetails: Map[String, String] = auditDetails)(event: DataEvent, hc: HeaderCarrier, ec: ExecutionContext): Boolean = event match {
         case DataEvent(auditSource, auditType, _, tags, detail, _) =>
           auditSource == appName &&
             auditType == eventType &&

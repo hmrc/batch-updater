@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.batchupdater
 
-import play.api.Logger
+import ch.qos.logback.classic.{Logger => LogbackLogger}
+import org.slf4j.LoggerFactory
 import play.api.libs.iteratee.{Enumerator, Iteratee}
 import uk.gov.hmrc.play.audit.EventKeys._
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector => Auditing}
@@ -31,6 +32,7 @@ trait BatchUpdater {
   def auditConnector: Auditing
   def appName: String
   def idName: String
+  val logger = LoggerFactory.getLogger(this.getClass).asInstanceOf[LogbackLogger]
 
   def update[ID](ids: List[ID], action: UpdateAction[ID])(implicit ec: ExecutionContext, stringify: Stringify[ID]): Future[BatchUpdateResult[ID]] = {
     def auditEvent(id: ID, result: SingleResult) = DataEvent(
@@ -49,12 +51,12 @@ trait BatchUpdater {
       val resultF: Future[SingleResult] =
         try {
           action(id).recover { case e: Exception =>
-            Logger.warn(s"Failed ${action.transactionName} for ${stringify(id)}", e)
+            logger.warn(s"Failed ${action.transactionName} for ${stringify(id)}", e)
             SingleResult.UpdateFailed()
           }
         } catch {
           case e: Exception =>
-            Logger.warn(s"Failed ${action.transactionName} for ${stringify(id)}", e)
+            logger.warn(s"Failed ${action.transactionName} for ${stringify(id)}", e)
             Future.successful(SingleResult.UpdateFailed())
         }
       resultF.flatMap { r =>
