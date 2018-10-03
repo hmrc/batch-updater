@@ -4,14 +4,19 @@ import sbt.Keys._
 import sbt._
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.versioning.SbtGitVersioning
+import uk.gov.hmrc.SbtAutoBuildPlugin
+import uk.gov.hmrc.versioning.SbtGitVersioning
+import uk.gov.hmrc.SbtArtifactory
 
 
 object HmrcBuild extends Build {
+  import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
   val appName = "batch-updater"
 
   lazy val `batch-updater` = (project in file("."))
-    .enablePlugins(SbtAutoBuildPlugin, SbtGitVersioning)
+    .enablePlugins(SbtAutoBuildPlugin, SbtGitVersioning, SbtArtifactory)
+    .settings(majorVersion := 5)
     .settings(
       name := appName,
       libraryDependencies ++= appDependencies
