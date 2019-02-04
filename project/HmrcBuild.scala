@@ -23,10 +23,11 @@ object HmrcBuild extends Build {
     )
 
   val appDependencies = Seq(
-    "uk.gov.hmrc"     %% "play-auditing"               % "3.2.0",
-    "org.scalatest"   %% "scalatest"                   % "2.2.4"   % "test",
-    "org.pegdown"     %  "pegdown"                     % "1.5.0"   % "test",
-    "org.scalamock"   %% "scalamock-scalatest-support" % "3.2"     % "test"
+    "uk.gov.hmrc"     %% "play-auditing"               % "3.14.0-play-25",
+    "ch.qos.logback"  %  "logback-classic"             % "1.2.3",
+    "org.scalatest"   %% "scalatest"                   % "2.2.6"   % "test",
+    "org.pegdown"     %  "pegdown"                     % "1.6.0"   % "test",
+    "org.scalamock"   %% "scalamock-scalatest-support" % "3.2.2"   % "test"
   )
 
 }
