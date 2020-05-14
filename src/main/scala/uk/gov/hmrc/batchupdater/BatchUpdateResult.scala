@@ -20,21 +20,22 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import SingleResult._
 
-case class BatchUpdateResult[ID](tried: Int,
-                                 succeeded: Int,
-                                 alreadyUpdated: Int,
-                                 invalidState: Int,
-                                 notFound: List[ID],
-                                 updateFailed: List[ID],
-                                 auditFailed: List[ID]) {
+case class BatchUpdateResult[ID](
+  tried: Int,
+  succeeded: Int,
+  alreadyUpdated: Int,
+  invalidState: Int,
+  notFound: List[ID],
+  updateFailed: List[ID],
+  auditFailed: List[ID]) {
 
   def add(result: SingleResult, id: ID): BatchUpdateResult[ID] = result match {
-    case _: Succeeded       => copy(tried = tried + 1, succeeded = succeeded + 1)
-    case _: AlreadyUpdated  => copy(tried = tried + 1, alreadyUpdated = alreadyUpdated + 1)
-    case _: InvalidState    => copy(tried = tried + 1, invalidState = invalidState + 1)
-    case _: NotFound        => copy(tried = tried + 1, notFound = notFound :+ id)
-    case _: UpdateFailed    => copy(tried = tried + 1, updateFailed = updateFailed :+ id)
-    case AuditFailed        => copy(auditFailed = auditFailed :+ id)
+    case _: Succeeded      => copy(tried = tried + 1, succeeded = succeeded + 1)
+    case _: AlreadyUpdated => copy(tried = tried + 1, alreadyUpdated = alreadyUpdated + 1)
+    case _: InvalidState   => copy(tried = tried + 1, invalidState = invalidState + 1)
+    case _: NotFound       => copy(tried = tried + 1, notFound = notFound :+ id)
+    case _: UpdateFailed   => copy(tried = tried + 1, updateFailed = updateFailed :+ id)
+    case AuditFailed       => copy(auditFailed = auditFailed :+ id)
   }
 }
 
@@ -51,13 +52,14 @@ object BatchUpdateResult {
 
   import scala.language.implicitConversions
 
-  implicit def batchUpdateResultWrites[ID](implicit idFormat: Writes[ID]): Writes[BatchUpdateResult[ID]] = (
-    (__ \ "tried").write[Int] and
-    (__ \ "succeeded").write[Int] and
-    (__ \ "alreadyUpdated").write[Int] and
-    (__ \ "invalidState").write[Int] and
-    (__ \ "notFound").write[List[ID]] and
-    (__ \ "updateFailed").write[List[ID]] and
-    (__ \ "auditFailed").write[List[ID]]
-  )(unlift(BatchUpdateResult.unapply[ID] _))
+  implicit def batchUpdateResultWrites[ID](implicit idFormat: Writes[ID]): Writes[BatchUpdateResult[ID]] =
+    (
+      (__ \ "tried").write[Int] and
+        (__ \ "succeeded").write[Int] and
+        (__ \ "alreadyUpdated").write[Int] and
+        (__ \ "invalidState").write[Int] and
+        (__ \ "notFound").write[List[ID]] and
+        (__ \ "updateFailed").write[List[ID]] and
+        (__ \ "auditFailed").write[List[ID]]
+    )(unlift(BatchUpdateResult.unapply[ID] _))
 }

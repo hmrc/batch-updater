@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.batchupdater
 
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{ Matchers, WordSpec }
 import play.api.libs.json.Json
 
 class BatchUpdateResultSpec extends WordSpec with Matchers {
@@ -25,17 +25,17 @@ class BatchUpdateResultSpec extends WordSpec with Matchers {
     implicit val idFormat = Json.format[ExampleID]
 
     "Serialize properly when empty" in {
-      Json.toJson(BatchUpdateResult.empty[ExampleID]) should be (Json.parse( """
-                                                                               |{
-                                                                               | "tried": 0,
-                                                                               | "succeeded": 0,
-                                                                               | "alreadyUpdated": 0,
-                                                                               | "invalidState": 0,
-                                                                               | "notFound": [],
-                                                                               | "updateFailed": [],
-                                                                               | "auditFailed": []
-                                                                               |}
-                                                                               |""".stripMargin))
+      Json.toJson(BatchUpdateResult.empty[ExampleID]) should be(Json.parse("""
+                                                                             |{
+                                                                             | "tried": 0,
+                                                                             | "succeeded": 0,
+                                                                             | "alreadyUpdated": 0,
+                                                                             | "invalidState": 0,
+                                                                             | "notFound": [],
+                                                                             | "updateFailed": [],
+                                                                             | "auditFailed": []
+                                                                             |}
+                                                                             |""".stripMargin))
     }
     "Serialize properly with values" in {
       val updateResult = BatchUpdateResult(
@@ -45,17 +45,18 @@ class BatchUpdateResultSpec extends WordSpec with Matchers {
         invalidState = 4,
         notFound = List(ExampleID("a"), ExampleID("b")),
         updateFailed = List(ExampleID("c"), ExampleID("d")),
-        auditFailed = List(ExampleID("e"), ExampleID("f")))
-      Json.toJson(updateResult) should be (Json.parse("""|{
-                                                         | "tried": 1,
-                                                         | "succeeded": 2,
-                                                         | "alreadyUpdated": 3,
-                                                         | "invalidState": 4,
-                                                         | "notFound": [{"value":"a"},{"value":"b"}],
-                                                         | "updateFailed": [{"value":"c"},{"value":"d"}],
-                                                         | "auditFailed": [{"value":"e"},{"value":"f"}]
-                                                         |}
-                                                         |""".stripMargin))
+        auditFailed = List(ExampleID("e"), ExampleID("f"))
+      )
+      Json.toJson(updateResult) should be(Json.parse("""|{
+                                                        | "tried": 1,
+                                                        | "succeeded": 2,
+                                                        | "alreadyUpdated": 3,
+                                                        | "invalidState": 4,
+                                                        | "notFound": [{"value":"a"},{"value":"b"}],
+                                                        | "updateFailed": [{"value":"c"},{"value":"d"}],
+                                                        | "auditFailed": [{"value":"e"},{"value":"f"}]
+                                                        |}
+                                                        |""".stripMargin))
     }
   }
 }
