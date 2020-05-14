@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.batchupdater
 
-import ch.qos.logback.classic.{Logger => LogbackLogger}
+import ch.qos.logback.classic.{ Logger => LogbackLogger }
 import org.slf4j.LoggerFactory
-import play.api.libs.iteratee.{Enumerator, Iteratee}
+import play.api.libs.iteratee.{ Enumerator, Iteratee }
 import uk.gov.hmrc.play.audit.EventKeys._
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector => Auditing}
+import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector => Auditing }
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.play.audit.model.EventTypes.{Failed => TxFailed, Succeeded => TxSucceeded}
+import uk.gov.hmrc.play.audit.model.EventTypes.{ Failed => TxFailed, Succeeded => TxSucceeded }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.reflectiveCalls
 
 trait BatchUpdater {
@@ -39,10 +39,10 @@ trait BatchUpdater {
       auditSource = appName,
       auditType = result.failureReason match {
         case Some(_) => TxFailed
-        case None => TxSucceeded
+        case None    => TxSucceeded
       },
       tags = Map(TransactionName -> action.transactionName),
-      detail = Map(idName -> stringify(id)) ++ result.failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map()) ++ result.auditDetails
+      detail = Map(idName        -> stringify(id)) ++ result.failureReason.map(f => Map("failureReason" -> f)).getOrElse(Map()) ++ result.auditDetails
     )
 
     def sendAuditEvent(id: ID, result: SingleResult) = auditConnector.sendEvent(auditEvent(id, result))
@@ -50,9 +50,10 @@ trait BatchUpdater {
     Enumerator.enumerate(ids) run Iteratee.foldM(BatchUpdateResult.empty[ID]) { (results, id) =>
       val resultF: Future[SingleResult] =
         try {
-          action(id).recover { case e: Exception =>
-            logger.warn(s"Failed ${action.transactionName} for ${stringify(id)}", e)
-            SingleResult.UpdateFailed()
+          action(id).recover {
+            case e: Exception =>
+              logger.warn(s"Failed ${action.transactionName} for ${stringify(id)}", e)
+              SingleResult.UpdateFailed()
           }
         } catch {
           case e: Exception =>
