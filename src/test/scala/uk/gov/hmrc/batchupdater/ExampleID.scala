@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.batchupdater
 
-
 case class ExampleID(value: String) {
   val stringify = value
 }

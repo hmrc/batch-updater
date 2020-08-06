@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.batchupdater
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait UpdateAction[ID] {
   def transactionName: String
