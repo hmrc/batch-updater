@@ -1,12 +1,7 @@
-import java.net.URL
-
 import sbt.Keys._
 import sbt._
-import uk.gov.hmrc.SbtAutoBuildPlugin
+import uk.gov.hmrc.{SbtArtifactory, SbtAutoBuildPlugin}
 import uk.gov.hmrc.versioning.SbtGitVersioning
-import uk.gov.hmrc.SbtAutoBuildPlugin
-import uk.gov.hmrc.versioning.SbtGitVersioning
-import uk.gov.hmrc.SbtArtifactory
 
 
 object HmrcBuild extends Build {
@@ -23,7 +18,7 @@ object HmrcBuild extends Build {
     )
 
   val appDependencies = Seq(
-    "uk.gov.hmrc"     %% "play-auditing"               % "3.14.0-play-25",
+    "uk.gov.hmrc"     %% "play-auditing"               % "4.3.0-play-25",
     "ch.qos.logback"  %  "logback-classic"             % "1.2.3",
     "org.scalatest"   %% "scalatest"                   % "2.2.6"   % "test",
     "org.pegdown"     %  "pegdown"                     % "1.6.0"   % "test",
